@@ -1,5 +1,6 @@
 use crate::cli::subcommand::LimaeSubCommand;
 use crate::constants::{APP_NAME, CLI_VERSION};
+use crate::serve::serve;
 use clap::Command;
 use colored::Colorize;
 
@@ -27,10 +28,7 @@ pub fn start_cli() {
     match subcommands.subcommand() {
         None => default_route(),
         Some((subcommand_name, subcommand)) => match LimaeSubCommand::get(subcommand_name) {
-            LimaeSubCommand::Serve => {
-                let port_number = subcommand.get_one::<String>("port").unwrap();
-                println!("{}", port_number);
-            }
+            LimaeSubCommand::Serve => serve(),
             LimaeSubCommand::Rephrase => {
                 let text = subcommand.get_one::<String>("text").unwrap();
                 println!("{}", text);
@@ -50,7 +48,9 @@ fn default_route() {
 
     match chosen_option.trim().parse::<u8>() {
         Ok(parsed_value) => {
-            println!("chosen value: {}", parsed_value)
+            if parsed_value == 1 {
+                serve();
+            }
         }
         Err(parsed_value) => {
             eprintln!("{}", parsed_value)

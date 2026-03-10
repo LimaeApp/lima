@@ -6,3 +6,7 @@ edition = "2024"
 [dependencies]
 clap = "4.5.60"
 colored = "3.1.1"
+axum = "0.8.8"
+tokio = { version = "1.50.0", features = ["rt-multi-thread", "macros", "signal"] }
+local-ip-address = "0.6.10"
+serde_json = "1.0.149"

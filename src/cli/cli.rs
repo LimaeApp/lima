@@ -1,23 +1,21 @@
 use crate::cli::subcommand::LimaeSubCommand;
-use crate::constants::{APP_NAME, CLI_VERSION};
 use crate::serve::serve;
+use crate::{CLI_VERSION, PROJ_NAME};
 use clap::Command;
 use colored::Colorize;
 
-#[path = "../constants.rs"]
-pub mod constants;
 mod subcommand;
 
 pub fn start_cli() {
     println!(
         "{}",
-        format!("{APP_NAME} v{CLI_VERSION}")
+        format!("{PROJ_NAME} v{CLI_VERSION}")
             .bold()
             .green()
             .underline()
     );
 
-    let subcommands = Command::new(APP_NAME)
+    let subcommands = Command::new(PROJ_NAME)
         .version(CLI_VERSION)
         .subcommand(LimaeSubCommand::Serve.build())
         .subcommand(LimaeSubCommand::Rephrase.build())

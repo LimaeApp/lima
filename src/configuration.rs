@@ -1,4 +1,4 @@
-use crate::helper_functions::{get_a_random_password, print_password, write_config};
+use crate::utils::{get_a_random_password, print_password, write_config};
 use colored::Colorize;
 use serde::{Deserialize, Serialize};
 
@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 pub struct LimaeConfiguration {
     pub(crate) password_hash: String,
 }
-
+// QKLrzKobWe3t4rAlSSNE55dNFR04FahJZx5Nfl5osPgybFhS3BQyAo6jjQ2P0Tv6aNdejqwz0Tqe9fvLQ5YjMQ52ctqBXjNA8Ni67BFhrtqDa1I7t7ILlRpzXQ
 pub struct Password {
     pub(crate) absolute: String,
     pub(crate) hash: String,

@@ -7,8 +7,11 @@ use axum::routing::{get, post};
 
 pub mod apps_router {
     use super::*;
-    use crate::helper_functions::run_if_valid_bearer;
+    use crate::models::{BlockApp, BlockedApp};
+    use crate::utils::SerializeResultToJson;
+    use crate::utils::{ResultToJson, run_if_valid_bearer};
     use axum_auth::AuthBearer;
+    use serde_json::Value;
 
     pub fn create() -> Router<LimaServerState> {
         Router::new()
@@ -20,11 +23,50 @@ pub mod apps_router {
     async fn get_all_blocked_apps(
         State(state): State<LimaServerState>,
         AuthBearer(bearer_token): AuthBearer,
-    ) -> Result<Json<Vec<String>>, StatusCode> {
-        run_if_valid_bearer(&bearer_token, Box::new(|| Json(vec!["Check".to_string()])))
+    ) -> Result<Json<Value>, StatusCode> {
+        run_if_valid_bearer(&bearer_token, || async move {
+            SerializeResultToJson::to_json_result(
+                sqlx::query_as::<_, BlockedApp>("SELECT * FROM AppBlocklist")
+                    .fetch_all(&state.db_pool)
+                    .await,
+            )
+        })
+        .await
     }
-    async fn block_app() {}
-    async fn unblock_app() {}
+
+    async fn block_app(
+        State(state): State<LimaServerState>,
+        AuthBearer(bearer_token): AuthBearer,
+        Json(payload): Json<BlockApp>,
+    ) -> Result<Json<Value>, StatusCode> {
+        run_if_valid_bearer(&bearer_token, || async move {
+            let package_name = payload.package_name;
+            sqlx::query("INSERT INTO AppBlocklist (id, package_name) VALUES (?, ?)")
+                .bind(payload.id)
+                .bind(&package_name)
+                .fetch_all(&state.db_pool)
+                .await
+                .to_json_result(format!("Added {} to blocklist!", package_name).to_string())
+        })
+        .await
+    }
+
+    async fn unblock_app(
+        State(state): State<LimaServerState>,
+        AuthBearer(bearer_token): AuthBearer,
+        Json(payload): Json<BlockApp>,
+    ) -> Result<Json<Value>, StatusCode> {
+        run_if_valid_bearer(&bearer_token, || async move {
+            let package_name = payload.package_name;
+            sqlx::query("DELETE FROM AppBlocklist WHERE id = ? AND package_name = ?")
+                .bind(payload.id)
+                .bind(&package_name)
+                .fetch_all(&state.db_pool)
+                .await
+                .to_json_result(format!("Removed {} from blocklist!", package_name).to_string())
+        })
+        .await
+    }
 }
 
 pub mod notes_router {

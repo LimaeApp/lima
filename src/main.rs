@@ -1,11 +1,12 @@
 #[path = "cli/cli.rs"]
 mod cli;
 mod configuration;
-pub mod helper_functions;
+pub mod models;
 #[path = "cli/serve/route.rs"]
 mod route;
 #[path = "cli/serve/serve.rs"]
 mod serve;
+pub mod utils;
 
 use crate::cli::start_cli;
 use crate::configuration::LimaeConfiguration;

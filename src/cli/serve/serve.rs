@@ -61,8 +61,8 @@ pub async fn setup_and_get_db(path: String) -> SqlitePool {
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS AppBlocklist (
             id TEXT PRIMARY KEY,
-            packageName TEXT NOT NULL UNIQUE,
-            CHECK(trim(packageName) <> '' AND trim(id) <> '')
+            package_name TEXT NOT NULL UNIQUE,
+            CHECK(trim(package_name) <> '' AND trim(id) <> '')
         )",
     )
     .execute(&db_pool)
@@ -85,7 +85,7 @@ pub async fn setup_and_get_db(path: String) -> SqlitePool {
             id TEXT PRIMARY KEY,
             title TEXT NOT NULL,
             content TEXT NOT NULL,
-            lastModified INTEGER NOT NULL,
+            last_modified INTEGER NOT NULL,
             CHECK((trim(title) <> '' OR trim(content) <> '') = 1 AND trim(id) <> '')
         )",
     )

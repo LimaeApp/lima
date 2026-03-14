@@ -1,4 +1,5 @@
 use crate::cli::subcommand::LimaeSubCommand;
+use crate::configuration::configuration;
 use crate::serve::serve;
 use crate::{CLI_VERSION, PROJ_NAME};
 use clap::Command;
@@ -6,7 +7,7 @@ use colored::Colorize;
 
 mod subcommand;
 
-pub fn start_cli() {
+pub async fn start_cli() {
     println!(
         "{}",
         format!("{PROJ_NAME} v{CLI_VERSION}")
@@ -24,9 +25,9 @@ pub fn start_cli() {
         .get_matches();
 
     match subcommands.subcommand() {
-        None => default_route(),
+        None => default_route().await,
         Some((subcommand_name, subcommand)) => match LimaeSubCommand::get(subcommand_name) {
-            LimaeSubCommand::Serve => serve(),
+            LimaeSubCommand::Serve => serve().await,
             LimaeSubCommand::Rephrase => {
                 let text = subcommand.get_one::<String>("text").unwrap();
                 println!("{}", text);
@@ -37,8 +38,8 @@ pub fn start_cli() {
     }
 }
 
-fn default_route() {
-    println!("What do you want to do?\n1. Serve\n2. Use\n3. Download");
+async fn default_route() {
+    println!("1. Serve\n2. Use\n3. Download\n4. Configuration");
     let mut chosen_option = String::new();
     std::io::stdin()
         .read_line(&mut chosen_option)
@@ -47,7 +48,10 @@ fn default_route() {
     match chosen_option.trim().parse::<u8>() {
         Ok(parsed_value) => {
             if parsed_value == 1 {
-                serve();
+                serve().await;
+            }
+            if parsed_value == 4 {
+                configuration().await
             }
         }
         Err(parsed_value) => {

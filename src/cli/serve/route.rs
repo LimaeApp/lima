@@ -1,9 +1,14 @@
 use crate::serve::LimaServerState;
+use axum::Json;
 use axum::Router;
+use axum::extract::State;
+use axum::http::StatusCode;
 use axum::routing::{get, post};
 
 pub mod apps_router {
     use super::*;
+    use crate::helper_functions::run_if_valid_bearer;
+    use axum_auth::AuthBearer;
 
     pub fn create() -> Router<LimaServerState> {
         Router::new()
@@ -12,7 +17,12 @@ pub mod apps_router {
             .route("/unblock", post(unblock_app))
     }
 
-    async fn get_all_blocked_apps() {}
+    async fn get_all_blocked_apps(
+        State(state): State<LimaServerState>,
+        AuthBearer(bearer_token): AuthBearer,
+    ) -> Result<Json<Vec<String>>, StatusCode> {
+        run_if_valid_bearer(&bearer_token, Box::new(|| Json(vec!["Check".to_string()])))
+    }
     async fn block_app() {}
     async fn unblock_app() {}
 }

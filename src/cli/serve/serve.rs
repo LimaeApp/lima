@@ -4,7 +4,6 @@ use axum::Router;
 use local_ip_address::local_ip;
 use sqlx::SqlitePool;
 use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
-use std::fs;
 use std::str::FromStr;
 use tokio::net::TcpListener;
 use tokio::signal;
@@ -14,10 +13,14 @@ pub struct LimaServerState {
     pub db_pool: SqlitePool,
 }
 
-#[tokio::main]
 pub async fn serve() {
-    if !fs::exists(&*LIMAE_DIR_PATH).expect("Issue while locating limae specific directory") {
-        fs::create_dir(&*LIMAE_DIR_PATH).expect("Couldn't create limae specific directory");
+    if !tokio::fs::try_exists(&*LIMAE_DIR_PATH)
+        .await
+        .expect("Issue while locating limae specific directory")
+    {
+        tokio::fs::create_dir(&*LIMAE_DIR_PATH)
+            .await
+            .expect("Couldn't create limae specific directory");
     }
 
     let db_pool = setup_and_get_db(format!("{}/cli.db", &*LIMAE_DIR_PATH)).await;
@@ -30,25 +33,14 @@ pub async fn serve() {
         .nest("/apps", apps_router::create())
         .with_state(lima_server_state.clone());
 
-    let mut ipv4addr: Option<String> = Some("0.0.0.0:3000".parse().unwrap());
-    let local_ips = local_ip();
+    let bind_address = format!("{}:3000", local_ip().unwrap().to_string());
+    let tcp_listener = TcpListener::bind(&bind_address).await.unwrap();
 
-    for ip in local_ips.iter() {
-        if ip.is_ipv4() {
-            ipv4addr = Some(format!("{ip}:3000"));
-            break;
-        }
-    }
-
-    let ipv4_as_string = &ipv4addr.unwrap();
-
-    let tcp_listener = TcpListener::bind(ipv4_as_string).await.unwrap();
-
-    println!("Listening at {ipv4_as_string}");
+    println!("Listening at {bind_address}");
 
     axum::serve(tcp_listener, lima_router)
         .with_graceful_shutdown(on_shutdown(|| async move {
-            lima_server_state.db_pool.close().await;
+            lima_server_state.db_pool.close().await
         }))
         .await
         .unwrap();

@@ -1,5 +1,8 @@
 use crate::LIMAE_DIR_PATH;
+use crate::configuration::configuration::get_a_random_password;
+use crate::configuration::{LimaeConfiguration, configuration};
 use crate::route::{apps_router, dictionary_router, notes_router};
+use crate::utils::print_password;
 use axum::Router;
 use local_ip_address::local_ip;
 use sqlx::SqlitePool;
@@ -21,6 +24,15 @@ pub async fn serve() {
         tokio::fs::create_dir(&*LIMAE_DIR_PATH)
             .await
             .expect("Couldn't create limae specific directory");
+    }
+
+    if !configuration::config_exists() {
+        println!("Creating a new config...");
+        let random_password = get_a_random_password();
+        configuration::write_config(LimaeConfiguration {
+            password_hash: random_password.hash,
+        });
+        print_password(&random_password.absolute);
     }
 
     let db_pool = setup_and_get_db(format!("{}/cli.db", &*LIMAE_DIR_PATH)).await;

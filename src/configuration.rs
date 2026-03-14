@@ -1,11 +1,10 @@
-use colored::Colorize;
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize)]
 pub struct LimaeConfiguration {
     pub(crate) password_hash: String,
 }
-// QKLrzKobWe3t4rAlSSNE55dNFR04FahJZx5Nfl5osPgybFhS3BQyAo6jjQ2P0Tv6aNdejqwz0Tqe9fvLQ5YjMQ52ctqBXjNA8Ni67BFhrtqDa1I7t7ILlRpzXQ
+// hdEEuNXzpGMjCXH1v5Y0vbT4FzE57ytnEBcjm83nYxDEkok4aYYO9wiHn5uY9gYzQhgEBQ0Fhkzvi1rGdC
 pub struct Password {
     pub(crate) absolute: String,
     pub(crate) hash: String,
@@ -21,6 +20,7 @@ pub mod configuration {
     use colored::Colorize;
     use rand::distr::{Alphanumeric, SampleString};
     use rand::prelude::IteratorRandom;
+    use std::fs;
 
     pub async fn init() {
         println!(
@@ -48,10 +48,14 @@ pub mod configuration {
         };
     }
 
+    pub fn config_exists() -> bool {
+        fs::exists(&*LIMAE_CONFIG_PATH).expect("Issue while locating limae config file")
+    }
+
     pub fn write_config(limae_configuration: LimaeConfiguration) {
         let raw_config = serde_json::to_string(&limae_configuration)
             .expect("Couldn't serialize the configuration");
-        std::fs::write(&*LIMAE_CONFIG_PATH, raw_config)
+        fs::write(&*LIMAE_CONFIG_PATH, raw_config)
             .expect("Couldn't write the configuration to the config file");
     }
 

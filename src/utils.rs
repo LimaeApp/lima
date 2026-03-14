@@ -1,43 +1,10 @@
-use crate::configuration::{LimaeConfiguration, Password};
-use crate::{LIMAE_CONFIG, LIMAE_CONFIG_PATH};
-use argon2::password_hash::SaltString;
-use argon2::password_hash::rand_core::OsRng;
-use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
+use crate::LIMAE_CONFIG;
+use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use axum::Json;
 use axum::http::StatusCode;
 use colored::Colorize;
-use rand::distr::{Alphanumeric, SampleString};
-use rand::prelude::IteratorRandom;
 use serde::Serialize;
 use serde_json::Value;
-
-pub fn write_config(limae_configuration: LimaeConfiguration) {
-    let raw_config =
-        serde_json::to_string(&limae_configuration).expect("Couldn't serialize the configuration");
-    std::fs::write(&*LIMAE_CONFIG_PATH, raw_config)
-        .expect("Couldn't write the configuration to the config file");
-}
-
-pub fn get_a_random_password() -> Password {
-    let salt = SaltString::generate(&mut OsRng);
-    let argon2 = Argon2::default();
-    let random_string = format!(
-        "{}",
-        Alphanumeric.sample_string(
-            &mut rand::rng(),
-            (75..160).choose(&mut rand::rng()).unwrap()
-        )
-    );
-    let password_hash = argon2
-        .hash_password(random_string.as_ref(), &salt)
-        .unwrap()
-        .to_string();
-
-    Password {
-        absolute: random_string,
-        hash: password_hash,
-    }
-}
 
 pub async fn run_if_valid_bearer<Type, Function, Deferred>(
     bearer_token: &str,

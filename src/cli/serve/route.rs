@@ -1,17 +1,17 @@
 use crate::serve::LimaServerState;
+use crate::utils::SerializeResultToJson;
+use crate::utils::{ResultToJson, run_if_valid_bearer};
 use axum::Json;
 use axum::Router;
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::routing::{get, post};
+use axum_auth::AuthBearer;
+use serde_json::Value;
 
 pub mod apps_router {
     use super::*;
     use crate::models::{BlockApp, BlockedApp};
-    use crate::utils::SerializeResultToJson;
-    use crate::utils::{ResultToJson, run_if_valid_bearer};
-    use axum_auth::AuthBearer;
-    use serde_json::Value;
 
     pub fn create() -> Router<LimaServerState> {
         Router::new()

@@ -51,7 +51,7 @@ async fn default_route() {
                 serve().await;
             }
             if parsed_value == 4 {
-                configuration().await
+                configuration::init().await
             }
         }
         Err(parsed_value) => {

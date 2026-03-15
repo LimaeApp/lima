@@ -5,6 +5,8 @@ use axum::http::StatusCode;
 use colored::Colorize;
 use serde::Serialize;
 use serde_json::Value;
+use sqlx::Error;
+use sqlx::sqlite::SqliteQueryResult;
 
 pub async fn run_if_valid_bearer<Type, Function, Deferred>(
     bearer_token: &str,
@@ -47,7 +49,7 @@ pub trait ResultToJson {
     fn to_json_result(self, response: String) -> Json<Value>;
 }
 
-impl<T> ResultToJson for Result<Vec<T>, sqlx::Error> {
+impl ResultToJson for Result<SqliteQueryResult, Error> {
     fn to_json_result(self, response: String) -> Json<Value> {
         match self {
             Ok(_) => Json(Value::String(response)),

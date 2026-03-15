@@ -1,8 +1,7 @@
-use crate::LIMAE_DIR_PATH;
 use crate::configuration::configuration::get_a_random_password;
 use crate::configuration::{LimaeConfiguration, configuration};
-use crate::route::{apps_router, dictionary_router, notes_router};
 use crate::utils::print_password;
+use crate::{LIMAE_DIR_PATH, apps_router, dictionary_router, notes_router};
 use axum::Router;
 use local_ip_address::local_ip;
 use sqlx::SqlitePool;

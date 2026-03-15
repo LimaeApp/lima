@@ -1,9 +1,13 @@
+#[path = "cli/serve/apps_router.rs"]
+mod apps_router;
 #[path = "cli/cli.rs"]
 mod cli;
 mod configuration;
+#[path = "cli/serve/dictionary_router.rs"]
+mod dictionary_router;
 pub mod models;
-#[path = "cli/serve/route.rs"]
-mod route;
+#[path = "cli/serve/notes_router.rs"]
+mod notes_router;
 #[path = "cli/serve/serve.rs"]
 mod serve;
 pub mod utils;

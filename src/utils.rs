@@ -14,7 +14,7 @@ pub async fn run_if_valid_bearer<Type, Function, Deferred>(
 ) -> Result<Type, StatusCode>
 where
     Function: FnOnce() -> Deferred,
-    Deferred: Future<Output = Type>,
+    Deferred: Future<Output = Result<Type, StatusCode>>,
 {
     let stored_hash_string = &*LIMAE_CONFIG.password_hash;
     let parsed_hash =
@@ -26,7 +26,7 @@ where
     {
         Err(StatusCode::UNAUTHORIZED)
     } else {
-        Ok(init_if_valid().await)
+        Ok(init_if_valid().await?)
     }
 }
 
@@ -42,27 +42,35 @@ pub fn print_password(pwd: &str) {
 }
 
 pub trait SerializeResultToJson {
-    fn to_json_result(self) -> Json<Value>;
+    fn to_json_result(self) -> Result<Json<Value>, StatusCode>;
 }
 
 pub trait ResultToJson {
-    fn to_json_result(self, response: String) -> Json<Value>;
+    fn to_json_result(self, response: String) -> Result<Json<Value>, StatusCode>;
 }
 
 impl ResultToJson for Result<SqliteQueryResult, Error> {
-    fn to_json_result(self, response: String) -> Json<Value> {
+    fn to_json_result(self, response: String) -> Result<Json<Value>, StatusCode> {
         match self {
-            Ok(_) => Json(Value::String(response)),
-            Err(error) => Json(serde_json::to_value(error.to_string()).unwrap()),
+            Ok(_) => Ok(Json(Value::String(response))),
+            Err(error) => {
+                println!("{}", error);
+                Err(StatusCode::BAD_REQUEST)
+            }
         }
     }
 }
 
-impl<T: Serialize> SerializeResultToJson for Result<Vec<T>, sqlx::Error> {
-    fn to_json_result(self) -> Json<Value> {
+impl<T: Serialize> SerializeResultToJson for Result<Vec<T>, Error> {
+    fn to_json_result(self) -> Result<Json<Value>, StatusCode> {
         match self {
-            Ok(vec_result) => Json(serde_json::to_value(&vec_result).unwrap_or(Value::Null)),
-            Err(error) => Json(serde_json::json!(error.to_string())),
+            Ok(vec_result) => Ok(Json(
+                serde_json::to_value(&vec_result).unwrap_or(Value::Null),
+            )),
+            Err(error) => {
+                println!("{}", error);
+                Err(StatusCode::BAD_REQUEST)
+            }
         }
     }
 }

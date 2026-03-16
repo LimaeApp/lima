@@ -5,8 +5,9 @@ use axum::http::StatusCode;
 use colored::Colorize;
 use serde::Serialize;
 use serde_json::Value;
-use sqlx::Error;
+use sqlx::query::Query;
 use sqlx::sqlite::SqliteQueryResult;
+use sqlx::{Error, Pool, Sqlite, SqlitePool};
 
 pub async fn run_if_valid_bearer<Type, Function, Deferred>(
     bearer_token: &str,
@@ -73,4 +74,29 @@ impl<T: Serialize> SerializeResultToJson for Result<Vec<T>, Error> {
             }
         }
     }
+}
+
+pub async fn transaction_execute<'rejoice_rejoice>(
+    db_pool: &SqlitePool,
+    query: Query<'rejoice_rejoice, Sqlite, sqlx::sqlite::SqliteArguments<'rejoice_rejoice>>,
+    sql_error_message: &str,
+    transaction_fail_message: &str,
+    success_msg: &str,
+) -> Result<Json<Value>, StatusCode> {
+    let mut transaction = Pool::begin(db_pool).await.map_err(|e| {
+        eprintln!("Failed to begin transaction: {}", e);
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
+
+    query.execute(&mut *transaction).await.map_err(|e| {
+        eprintln!("{}: {}", sql_error_message, e);
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
+
+    transaction.commit().await.map_err(|e| {
+        eprintln!("[Commit failed] {}: {}", transaction_fail_message, e);
+        StatusCode::INTERNAL_SERVER_ERROR
+    })?;
+
+    Ok(Json(Value::String(success_msg.to_string())))
 }

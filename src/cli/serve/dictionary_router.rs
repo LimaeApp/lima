@@ -1,6 +1,6 @@
 use crate::serve::LimaServerState;
-use crate::utils::SerializeResultToJson;
 use crate::utils::{ResultToJson, run_if_valid_bearer};
+use crate::utils::{SerializeResultToJson, transaction_execute};
 use axum::Json;
 use axum::Router;
 use axum::extract::State;
@@ -92,30 +92,14 @@ async fn delete_all_from_dict(
     AuthBearer(bearer_token): AuthBearer,
 ) -> Result<Json<Value>, StatusCode> {
     run_if_valid_bearer(&bearer_token, || async move {
-        let mut transaction = Pool::begin(&state.db_pool).await.map_err(|e| {
-            eprintln!("Failed to begin transaction: {}", e);
-            StatusCode::INTERNAL_SERVER_ERROR
-        })?;
-
-        sqlx::query("DELETE FROM Dictionary;")
-            .execute(&mut *transaction)
-            .await
-            .map_err(|e| {
-                eprintln!("Couldn't delete all strings to dictionary: {}", e);
-                StatusCode::INTERNAL_SERVER_ERROR
-            })?;
-
-        transaction.commit().await.map_err(|e| {
-            eprintln!(
-                "[Commit failed] Couldn't delete all strings to dictionary: {}",
-                e
-            );
-            StatusCode::INTERNAL_SERVER_ERROR
-        })?;
-
-        Ok(Json(Value::String(
-            "Removed all strings from dictionary!".to_string(),
-        )))
+        transaction_execute(
+            &(state.db_pool),
+            sqlx::query("DELETE FROM Dictionary;"),
+            "Couldn't delete all strings from dictionary",
+            "Couldn't delete all strings from dictionary",
+            "Removed all strings from dictionary!",
+        )
+        .await
     })
     .await
 }

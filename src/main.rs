@@ -20,6 +20,10 @@ use std::sync::LazyLock;
 pub const CLI_VERSION: &str = "0.1.0";
 pub const PROJ_NAME: &str = "Lima";
 
+pub const PAGE_ID: &str = "page_id";
+pub const PAGE_SIZE: &str = "page_size";
+pub const DEFAULT_PAGE_SIZE: &u32 = &15;
+
 pub static LIMAE_DIR_PATH: LazyLock<String> =
     LazyLock::new(|| format!("{}/.limae", env::home_dir().unwrap().display()));
 

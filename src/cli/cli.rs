@@ -29,7 +29,9 @@ pub async fn start_cli() {
         Some((subcommand_name, subcommand)) => match LimaeSubCommand::get(subcommand_name) {
             LimaeSubCommand::Serve => serve().await,
             LimaeSubCommand::Rephrase => {
-                let text = subcommand.get_one::<String>("text").unwrap();
+                let text = subcommand
+                    .get_one::<String>("text")
+                    .expect("text argument is required");
                 println!("{}", text);
             }
             LimaeSubCommand::Downloads => {}

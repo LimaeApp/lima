@@ -66,12 +66,14 @@ pub mod configuration {
             "{}",
             Alphanumeric.sample_string(
                 &mut rand::rng(),
-                (75..160).choose(&mut rand::rng()).unwrap()
+                (75..160)
+                    .choose(&mut rand::rng())
+                    .expect("Failed to choose random string length")
             )
         );
         let password_hash = argon2
             .hash_password(random_string.as_ref(), &salt)
-            .unwrap()
+            .expect("Failed to hash password")
             .to_string();
 
         Password {

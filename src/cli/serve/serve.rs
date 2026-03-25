@@ -44,8 +44,13 @@ pub async fn serve() {
         .nest("/apps", apps_router::create())
         .with_state(lima_server_state.clone());
 
-    let bind_address = format!("{}:3000", local_ip().unwrap().to_string());
-    let tcp_listener = TcpListener::bind(&bind_address).await.unwrap();
+    let bind_address = format!(
+        "{}:3000",
+        local_ip().expect("Failed to get local IP").to_string()
+    );
+    let tcp_listener = TcpListener::bind(&bind_address)
+        .await
+        .expect("Failed to bind TCP listener");
 
     println!("Listening at {bind_address}");
 
@@ -54,13 +59,13 @@ pub async fn serve() {
             lima_server_state.db_pool.close().await
         }))
         .await
-        .unwrap();
+        .expect("Failed to start the server");
 }
 
 pub async fn setup_and_get_db(path: String) -> SqlitePool {
     let connection_string = format!("sqlite://{}", path);
     let db_options = SqliteConnectOptions::from_str(&connection_string)
-        .unwrap()
+        .expect("Failed to parse SQLite connection string")
         .create_if_missing(true);
 
     let db_pool = SqlitePoolOptions::new()

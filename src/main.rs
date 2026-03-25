@@ -24,14 +24,21 @@ pub const PAGE_ID: &str = "page_id";
 pub const PAGE_SIZE: &str = "page_size";
 pub const DEFAULT_PAGE_SIZE: &u32 = &15;
 
-pub static LIMAE_DIR_PATH: LazyLock<String> =
-    LazyLock::new(|| format!("{}/.limae", env::home_dir().unwrap().display()));
+pub static LIMAE_DIR_PATH: LazyLock<String> = LazyLock::new(|| {
+    format!(
+        "{}/.limae",
+        env::home_dir()
+            .expect("Can't find home directory")
+            .display()
+    )
+});
 
 pub static LIMAE_CONFIG_PATH: LazyLock<String> =
     LazyLock::new(|| format!("{}{}", &*LIMAE_DIR_PATH, "/cli_config.json"));
 
 pub static LIMAE_CONFIG: LazyLock<LimaeConfiguration> = LazyLock::new(|| {
-    let config_string = std::fs::read_to_string(&*LIMAE_CONFIG_PATH).unwrap();
+    let config_string =
+        std::fs::read_to_string(&*LIMAE_CONFIG_PATH).expect("Failed to read Limae config file");
 
     serde_json::from_str::<LimaeConfiguration>(&config_string)
         .expect("Couldn't deserialize the config file")
